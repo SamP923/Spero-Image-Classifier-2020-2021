@@ -2,6 +2,7 @@ from CompiledAlgorithms.HierarchicalAlgorithm import HierarchicalClusterAlgorith
 from CompiledAlgorithms.KMeansAlgorithm import DominantColorsKMeans
 from CompiledAlgorithms.GMMAlgorithm import DominantColorsGMM
 from CompiledAlgorithms.EXPAlgorithm import DominantColorsEXP
+from CompiledAlgorithms.HierarchicalAlgorithm_Inherited import DominantColorsHier
 from CompiledAlgorithms.CustomKMeansAlgorithm import KMeans
 from CompiledAlgorithms.elbowMethod import Elbow
 
@@ -34,14 +35,17 @@ class AlgorithmRunner:
         elif alg == 'exp':
             kwargs['alg'] = 'EXP'
             algorithm = DominantColorsEXP(**kwargs)
+        elif alg == 'hier':
+            kwargs['alg'] = 'HIER'
+            algorithm = DominantColorsHier(**kwargs)
 
         return algorithm.findDominant()
 
     # Hierarchical has n-neighbors, but not KMeans
-    def run_HierarchicalClusterAlgorithm(self, image_path, image_name, result_folder, cluster_override=0,
-                                         n_neighbors_override=0, decimate_factor=1, no_results_output=False):
-        alg = HierarchicalClusterAlgorithm(image_path, image_name, result_folder, cluster_override,
-                                     n_neighbors_override, decimate_factor, no_results_output)
+    # def run_HierarchicalClusterAlgorithm(self, image_path, image_name, result_folder, cluster_override=0,
+    #                                      n_neighbors_override=0, decimate_factor=1, no_results_output=False):
+    #     alg = HierarchicalClusterAlgorithm(image_path, image_name, result_folder, cluster_override,
+    #                                  n_neighbors_override, decimate_factor, no_results_output)
 
     def run_CustomKMeansAlgorithm(self, image_path, filename , result_folder, custom_clusters=0, decimation=1, max_iterations=30):
         km = KMeans()
