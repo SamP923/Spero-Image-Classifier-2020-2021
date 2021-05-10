@@ -96,37 +96,7 @@ class ClusteringAlgorithm:
                     img[i, j] = np.subtract(img[i, j], model.predict(x))
                     img[i, j] = np.transpose(scaler.fit_transform(np.transpose([img[i, j]])))[0]
         self.normalizedImage = img
-
-    def findDominant(self):
-        # Creates ENVI Object and reads the image at the given path
-        ei = Envi.EnviImage()
-        ei.Read(self.PATH, True, False, False)
-
-        # Decimates spectrum based on optional input(Default is 1, does not affect data)
-        ei.DecimateSpectrum(self.decimate_factor)
-
-        # Saves original image for later use in display
-        self.origImage = ei.Pixels
-        self.WAVELENGTHS = ei.wavelength
-        # Normalizes image for shape
-        self.normalize()
-        img = self.normalizedImage
-        # reshapes image into 2D array shape (x*y, z)
-        img = img.reshape((ei.Pixels.shape[0] * ei.Pixels.shape[1], ei.Pixels.shape[2]))
-
-        # Kmeans clustering
-        # Uses elbow method to calculate the optimal K clusters (Unless override by user, where cluster_override != 0)
-        print("Finding optimal number of clusters")
-        self.IMAGE = img
-        img = cluster_enumeration()
-        
-        #reduces dimensions through pca
-        if self.PCAON:
-            img = pca_reduction()
-        
-        print('\nRunning Clustering Algorithm...')
-        return img
-
+    
     def cluster_enumeration(self):
         img = self.IMAGE
         # cluster enumeration algorithms
@@ -158,6 +128,30 @@ class ClusteringAlgorithm:
             print(f"Optimal number of DeD clusters: {self.CLUSTERS} clusters")
         
         return img
+
+    def findDominant(self):
+        if self.PCAON:
+            # Creates ENVI Object and reads the image at the given path
+            ei = Envi.EnviImage()
+            ei.Read(self.PATH, True, False, False)
+
+            # Decimates spectrum based on optional input(Default is 1, does not affect data)
+            ei.DecimateSpectrum(self.decimate_factor)
+
+            # Saves original image for later use in display
+            self.origImage = ei.Pixels
+            self.WAVELENGTHS = ei.wavelength
+            # Normalizes image for shape
+            self.normalize()
+            img = self.normalizedImage
+            # reshapes image into 2D array shape (x*y, z)
+            img = img.reshape((ei.Pixels.shape[0] * ei.Pixels.shape[1], ei.Pixels.shape[2]))
+
+            # Kmeans clustering
+            # Uses elbow method to calculate the optimal K clusters (Unless override by user, where cluster_override != 0)
+
+        return img
+
     
     def pca_reduction(self):
         img = self.IMAGE

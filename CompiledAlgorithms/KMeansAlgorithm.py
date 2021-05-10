@@ -44,6 +44,12 @@ class DominantColorsKMeans(ClusteringAlgorithm):
 
     def findDominant(self):
         img = super().findDominant()
+        
+        print("Finding optimal number of clusters")
+        img = super().cluster_enumeration()
+        img = super().pca_reduction()
+
+        print('\nRunning Clustering Algorithm...')
         try:
             self.cluster(img)
         except NameError:
