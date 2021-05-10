@@ -17,6 +17,8 @@ from .AICMethod import AIC
 from .GapStatisticMethod import Gap
 from .DeD_enumeration import DeD_Enumerator
 import datetime
+import time
+import sys
 
 
 class ClusteringAlgorithm:
@@ -54,6 +56,9 @@ class ClusteringAlgorithm:
         self.CLUSTER_ENUM = cluster_enum
 
         self.ALG = alg
+
+    def log(self, message):
+        sys.stdout.write(message + "\n")
 
     def find_centers(self):
         """
@@ -114,24 +119,40 @@ class ClusteringAlgorithm:
         # reshapes image into 2D array shape (x*y, z)
         img = img.reshape((ei.Pixels.shape[0] * ei.Pixels.shape[1], ei.Pixels.shape[2]))
 
+        #reduces dimensions through pca
+
+
         # Kmeans clustering
         # Uses elbow method to calculate the optimal K clusters (Unless override by user, where cluster_override != 0)
+
+
+        if self.PCAON:
+            print("\nReducing Dimensions with PCA")
+            pca = PCA()
+            pca.fit(img)
+            # print(pca.explained_variance_ratio_)
+            var_sum = 0
+            for x in range(len(pca.explained_variance_ratio_)):
+                if pca.explained_variance_ratio_[x] > 0.06 or self.PCADIMENSIONS < 3:
+                    var_sum += pca.explained_variance_ratio_[x]
+                    self.PCADIMENSIONS += 1
+                else:
+                    break
+            print(f"{var_sum * 100}% of signal represented with {self.PCADIMENSIONS} pixel dimensions\n")
+            pca = PCA(n_components=self.PCADIMENSIONS)
+            pca.fit(img)
+            #print(pca.explained_variance_ratio_)
+            img = pca.transform(img)
+
+            # writing new image data to csv
+            #np.savetxt("pca_image.csv", img, delimiter=',')
+
         print("Finding optimal number of clusters")
         self.IMAGE = img
-        img = cluster_enumeration()
-        
-        #reduces dimensions through pca
-        if self.PCAON:
-            img = pca_reduction()
-        
-        print('\nRunning Clustering Algorithm...')
-        return img
-
-    def cluster_enumeration(self):
-        img = self.IMAGE
         # cluster enumeration algorithms
         if self.cluster_override != 0:
             self.CLUSTERS = self.cluster_override
+            self.log("Clusters count overridden to be: " + str(cluster_override))
         elif self.CLUSTER_ENUM == 'elbow':
             #elbow method
             self.CLUSTERS = Elbow.elbowMethod(self, img)
@@ -156,29 +177,8 @@ class ClusteringAlgorithm:
             #DeD
             self.CLUSTERS = DeD_Enumerator(img).optimal_k(range(2, 11))
             print(f"Optimal number of DeD clusters: {self.CLUSTERS} clusters")
-        
-        return img
-    
-    def pca_reduction(self):
-        img = self.IMAGE
-        print("\nReducing Dimensions with PCA")
-        pca = PCA()
-        pca.fit(img)
-        # print(pca.explained_variance_ratio_)
-        var_sum = 0
-        for x in range(len(pca.explained_variance_ratio_)):
-            if pca.explained_variance_ratio_[x] > 0.06 or self.PCADIMENSIONS < 3:
-                var_sum += pca.explained_variance_ratio_[x]
-                self.PCADIMENSIONS += 1
-            else:
-                break
-        print(f"{var_sum * 100}% of signal represented with {self.PCADIMENSIONS} pixel dimensions\n")
-        pca = PCA(n_components=self.PCADIMENSIONS)
-        pca.fit(img)
-        img = pca.transform(img)
 
-        # writing new image data to csv
-        #np.savetxt("pca_image.csv", img, delimiter=',')
+        print('\nRunning Clustering Algorithm...')
         return img
 
     def plot(self):
