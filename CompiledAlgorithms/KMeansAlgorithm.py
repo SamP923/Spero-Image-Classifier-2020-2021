@@ -44,10 +44,12 @@ class DominantColorsKMeans(ClusteringAlgorithm):
 
     def findDominant(self):
         img = super().findDominant()
+
+        img = super().pca_reduction()
         
         print("Finding optimal number of clusters")
         img = super().cluster_enumeration()
-        img = super().pca_reduction()
+        
 
         print('\nRunning Clustering Algorithm...')
         try:

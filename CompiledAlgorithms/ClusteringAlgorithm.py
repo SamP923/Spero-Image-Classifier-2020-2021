@@ -130,49 +130,50 @@ class ClusteringAlgorithm:
         return img
 
     def findDominant(self):
-        if self.PCAON:
-            # Creates ENVI Object and reads the image at the given path
-            ei = Envi.EnviImage()
-            ei.Read(self.PATH, True, False, False)
+        # Creates ENVI Object and reads the image at the given path
+        ei = Envi.EnviImage()
+        ei.Read(self.PATH, True, False, False)
 
-            # Decimates spectrum based on optional input(Default is 1, does not affect data)
-            ei.DecimateSpectrum(self.decimate_factor)
+        # Decimates spectrum based on optional input(Default is 1, does not affect data)
+        ei.DecimateSpectrum(self.decimate_factor)
 
-            # Saves original image for later use in display
-            self.origImage = ei.Pixels
-            self.WAVELENGTHS = ei.wavelength
-            # Normalizes image for shape
-            self.normalize()
-            img = self.normalizedImage
-            # reshapes image into 2D array shape (x*y, z)
-            img = img.reshape((ei.Pixels.shape[0] * ei.Pixels.shape[1], ei.Pixels.shape[2]))
+        # Saves original image for later use in display
+        self.origImage = ei.Pixels
+        self.WAVELENGTHS = ei.wavelength
+        # Normalizes image for shape
+        self.normalize()
+        img = self.normalizedImage
+        # reshapes image into 2D array shape (x*y, z)
+        img = img.reshape((ei.Pixels.shape[0] * ei.Pixels.shape[1], ei.Pixels.shape[2]))
 
-            # Kmeans clustering
-            # Uses elbow method to calculate the optimal K clusters (Unless override by user, where cluster_override != 0)
-
+        # Kmeans clustering
+        # Uses elbow method to calculate the optimal K clusters (Unless override by user, where cluster_override != 0)
+        print("Finding optimal number of clusters")
+        self.IMAGE = img
         return img
 
     
     def pca_reduction(self):
-        img = self.IMAGE
-        print("\nReducing Dimensions with PCA")
-        pca = PCA()
-        pca.fit(img)
-        # print(pca.explained_variance_ratio_)
-        var_sum = 0
-        for x in range(len(pca.explained_variance_ratio_)):
-            if pca.explained_variance_ratio_[x] > 0.06 or self.PCADIMENSIONS < 3:
-                var_sum += pca.explained_variance_ratio_[x]
-                self.PCADIMENSIONS += 1
-            else:
-                break
-        print(f"{var_sum * 100}% of signal represented with {self.PCADIMENSIONS} pixel dimensions\n")
-        pca = PCA(n_components=self.PCADIMENSIONS)
-        pca.fit(img)
-        img = pca.transform(img)
+        if self.PCAON:
+            img = self.IMAGE
+            print("\nReducing Dimensions with PCA")
+            pca = PCA()
+            pca.fit(img)
+            # print(pca.explained_variance_ratio_)
+            var_sum = 0
+            for x in range(len(pca.explained_variance_ratio_)):
+                if pca.explained_variance_ratio_[x] > 0.06 or self.PCADIMENSIONS < 3:
+                    var_sum += pca.explained_variance_ratio_[x]
+                    self.PCADIMENSIONS += 1
+                else:
+                    break
+            print(f"{var_sum * 100}% of signal represented with {self.PCADIMENSIONS} pixel dimensions\n")
+            pca = PCA(n_components=self.PCADIMENSIONS)
+            pca.fit(img)
+            img = pca.transform(img)
 
-        # writing new image data to csv
-        #np.savetxt("pca_image.csv", img, delimiter=',')
+            # writing new image data to csv
+            #np.savetxt("pca_image.csv", img, delimiter=',')
         return img
 
     def plot(self):
